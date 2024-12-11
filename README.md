@@ -3,3 +3,5 @@
 # dinmaegler
 
 - [Documentation](DOC.md)
+
+![front page](frontpage.png)
