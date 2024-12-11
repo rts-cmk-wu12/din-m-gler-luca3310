@@ -14,8 +14,10 @@
 
 ## dependicies
 
-- tailwind
-  tailwind > css, stadig lort tho
+<details>
+<summary>Tailwind</summary>
+<p>tailwind er bedre end css, stadig lort tho</p>
+</details>
 - typescript
   javascript men bedre
 - svelteMaplibre
