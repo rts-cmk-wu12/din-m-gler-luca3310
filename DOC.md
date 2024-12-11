@@ -9,8 +9,10 @@
 
 ## stack
 
-- sveltekit
-  jeg var DUM
+<details>
+<summary>Sveltekit</summary>
+<p>jeg var DUM</p>
+</details>
 
 ## dependicies
 
@@ -18,20 +20,40 @@
 <summary>Tailwind</summary>
 <p>tailwind er bedre end css, stadig lort tho</p>
 </details>
-- typescript
-  javascript men bedre
-- svelteMaplibre
-  eneste map biblotek for svelte ...
+<details>
+<summary>Typescript</summary>
+<p>javascript men bedre</p>
+</details>
+<details>
+<summary>SvelteMaplibre</summary>
+<p>eneste map biblotek for svelte ...</p>
+</details>
 
-## argumenter
+## Argumenter
 
-- fjernet like fra mæglere
-  fordi det kun er på figmaen og ikke på apien
-- fjernet ændret footer på error page
-  giver ikke nogen mening at footeren er ændret på error pagen
-- fjernet double range fra boliger
+<details>
+<summary>Fjernet like fra mæglere</summary>
+<p>Fordi det kun er på figmaen og ikke på apien</p>
+</details>
 
-## vurdering
+<details>
+<summary>Fjernet ændret footer på error page</summary>
+<p>Giver ikke nogen mening at footeren er ændret på error pagen</p>
+</details>
 
-- middleware i svelte var svært at få til at virke
-- komponere i svelte
+<details>
+<summary>Fjernet double range fra boliger</summary>
+<p>Dette er blevet fjernet for at undgå forvirring og forbedre brugeroplevelsen</p>
+</details>
+
+## Vurdering
+
+<details>
+<summary>Middleware i Svelte var svært at få til at virke</summary>
+<p>Der var udfordringer med at implementere middleware i Svelte, hvilket krævede alternative løsninger.</p>
+</details>
+
+<details>
+<summary>Komponere i Svelte</summary>
+<p>Svelte gør det muligt at komponere effektivt, men kræver en lidt anderledes tankegang end traditionelle frameworks.</p>
+</details>
