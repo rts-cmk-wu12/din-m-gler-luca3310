@@ -29,7 +29,7 @@
 
 <details>
 <summary>Tailwind</summary>
-<p>Tailwind CSS blev valgt for at skabe et hurtigt og fleksibelt design uden at skulle skrive traditionelle CSS-filer. Selvom det har sine begrænsninger, giver det en effektiv og moderne tilgang til styling.</p>
+<p>Tailwind CSS blev valgt for at skabe et hurtigt og fleksibelt design uden at skulle skrive traditionelle CSS-filer. Selvom det har sine begrænsninger som at gøre html filerne kæmpe, giver det en effektiv og moderne tilgang til styling.</p>
 </details>
 
 <details>
@@ -80,3 +80,92 @@
 <summary>searchbar på hovedside</summary>
 <p>Ville gerne havde nået at lave searchbaren færdig, med finpudsning af dropdownen og måske mere søgefunctionalitet</p>
 </details>
+
+## Code 
+
+- +layout.server.ts
+
+```json
+import type { LayoutServerLoad } from './$types';
+
+export const load: LayoutServerLoad = async ({ cookies }: any) => {
+	const jwt = cookies.get('jwt');
+	return { jwt: jwt };
+};
+```
+
+dette er en server fil der bliver kaldt hver gang siden indlæser (vil siges at den ikke bliver opdateret hver gang man skifter side), jeg har brugt den til at få fat i min jwt fra cookies, da cookies kun kan hentes fra server siden
+
+- +layout.ts
+
+```json
+import type { LayoutLoad } from './$types';
+
+export const load: LayoutLoad = async ({ data }: any) => {
+    if (data.jwt) {
+        try {
+            const res = await fetch('https://dinmaegler.onrender.com/users/me', {
+                method: 'GET',
+                headers: {
+                    Authorization: `Bearer ${data.jwt}`
+                }
+            });
+            if (res.ok) {
+                const userData = await res.json();
+                return { user: userData, jwt: data.jwt };
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    } else {
+        return { user: null, jwt: data.jwt };
+    }
+};
+```
+
+dette er en client fil, der vil kaldes hver gang at siden skiftes, den får dataen (jwt) fra den nyeste opdatering af serveren, så den kan lave lave en betingelse om den skal returnere useren som null sammen med jwt hvis der er ikke er en jwt eller om den fetch bruger informatinen og returnere den sammen med jwt
+
+```json
+	let props = $props();
+	let properties = $state<any[]>([]);
+
+  const fetchProperties = async () => {
+		try {
+			const res = await fetch('https://dinmaegler.onrender.com/homes');
+			if (!res.ok) {
+				throw new Error('Failed to fetch homes');
+			}
+
+			const data = await res.json();
+
+			const filteredData = data.map((item: any) => ({
+				id: item.id,
+				title: item.adress1,
+				location: `${item.postalcode} ${item.city}`,
+				type: item.type,
+				size: `${item.livingspace} m²`,
+				rooms: item.rooms,
+				price: item.price,
+				image: item.images[0]?.url || 'https://placehold.co/200x300',
+				energylabel: item.energylabel,
+				cost: item.cost,
+				isFavorite: props.data.user ? props.data.user.homes.includes(item.id) : false,
+				isLoading: false // Added isLoading property directly to the property object
+			}));
+			properties = filteredData;
+		} catch (err: any) {
+			errorMessage = err.message;
+			console.error(err);
+		}
+	};
+
+	$effect(() => {
+		fetchProperties();
+	});
+```
+
+det er en fetch til at få alle boliger, efter fetches mapper jeg igennem den, så jeg kun har den data jeg skal bruge, derefter så jeg min properties som er en reactiv state, til den filteret data
+
+jeg bruger også try catch til error handling, min $effect bliver kaldt ved hver indlæsning
+
+props indeholder den data som bliver returneret fra +layout.ts, som jeg bruger til at finde ud af om boligen af en del af brugerens favoritter
