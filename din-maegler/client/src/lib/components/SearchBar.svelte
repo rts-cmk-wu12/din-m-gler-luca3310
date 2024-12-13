@@ -3,6 +3,8 @@
 
 	let properties = $state<any>();
 
+	let { button, text } = $props();
+
 	let filteredProperties = $state<any>();
 
 	const fetchProperties = async () => {
@@ -54,7 +56,7 @@
 		<input
 			type="text"
 			bind:value={searchQuery}
-			placeholder="Hvad skal din næste bolig indeholde"
+			placeholder={text}
 			class="py-3 px-4 w-full rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none"
 		/>
 		{#if filteredProperties && filteredProperties.length !== 0}
@@ -62,29 +64,33 @@
 				class="flex overflow-scroll absolute bottom-0 left-0 z-20 flex-col gap-3 p-3 w-full bg-red-700 translate-y-full max-h-[30rem]"
 			>
 				{#each filteredProperties as property}
-					<li class="flex justify-between hover:bg-gray-100 hover:cursor-pointer">
-						<div class="flex gap-3">
-							<div class="rounded h-[7rem] w-[7rem]">
-								<img class="w-full h-full" src={property.image} alt="image" />
+					<a href={`property/${property.id}`}>
+						<li class="flex justify-between hover:bg-gray-100 hover:cursor-pointer">
+							<div class="flex gap-3">
+								<div class="rounded h-[7rem] w-[7rem]">
+									<img class="w-full h-full" src={property.image} alt="image" />
+								</div>
+								<div class="flex flex-col gap-1 items-start">
+									<p>{property.title}</p>
+									<p>{property.location}</p>
+								</div>
 							</div>
-							<div class="flex flex-col gap-1 items-start">
-								<p>{property.title}</p>
-								<p>{property.location}</p>
+							<div class="h-[7rem] w-[7rem]">
+								<img class="w-full h-full" src="https://placehold.co/100x100" alt="image" />
 							</div>
-						</div>
-						<div class="h-[7rem] w-[7rem]">
-							<img class="w-full h-full" src="https://placehold.co/100x100" alt="image" />
-						</div>
-					</li>
+						</li>
+					</a>
 				{/each}
 			</ul>
 		{/if}
 	</div>
 
-	<button
-		type="submit"
-		class="py-3 px-6 text-white rounded-md focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none bg-[#1a3a54] hover:bg-[#15304a]"
-	>
-		Søg
-	</button>
+	{#if button}
+		<button
+			type="submit"
+			class="py-3 px-6 text-white rounded-md focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none bg-[#1a3a54] hover:bg-[#15304a]"
+		>
+			Søg
+		</button>
+	{/if}
 </form>

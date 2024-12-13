@@ -1,9 +1,12 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
+	import { goto, invalidateAll } from '$app/navigation';
+
 	let email = $state('');
 	let password = $state('');
+	let isLoading = $state<boolean>(false);
 
 	const loginFetch = async () => {
+		isLoading = true;
 		try {
 			const response = await fetch('/login', {
 				method: 'POST',
@@ -12,7 +15,8 @@
 			});
 
 			if (response.ok) {
-				// Redirect or update UI upon successful login
+				await invalidateAll();
+				await new Promise((resolve) => setTimeout(resolve, 2000));
 				await goto('/');
 			} else {
 				const errorData = await response.json();
@@ -20,6 +24,8 @@
 			}
 		} catch (err) {
 			console.error('Login failed:', err);
+		} finally {
+			isLoading = false;
 		}
 	};
 
@@ -58,12 +64,27 @@
 				/>
 			</div>
 
-			<button
-				type="submit"
-				class="py-2 px-4 w-full text-white rounded-md focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none bg-[#1a3a54] hover:bg-[#15304a]"
-			>
-				Log ind
-			</button>
+			{#if isLoading}
+				<div class="flex justify-center">
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						class="w-5 h-5 text-blue-500 animate-spin"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+					>
+						<circle cx="12" cy="12" r="10" stroke-width="4"></circle>
+						<path d="M4 12a8 8 0 013.292-6.708" stroke-width="4"></path>
+					</svg>
+				</div>
+			{:else}
+				<button
+					type="submit"
+					class="py-2 px-4 w-full text-white rounded-md focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none bg-[#1a3a54] hover:bg-[#15304a]"
+				>
+					Log ind
+				</button>
+			{/if}
 		</form>
 
 		<div class="mt-6">

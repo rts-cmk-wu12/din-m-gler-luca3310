@@ -1,12 +1,12 @@
 <script lang="ts">
 	import hearth from '$lib/assets/hearth.svg';
 	import love from '$lib/assets/Love.svg';
+	import { invalidateAll } from '$app/navigation';
 
 	let props = $props();
 	let properties = $state<any[]>([]);
 	let errorMessage = $state('');
-	let loadingState: Record<string, boolean> = {}; // Tracks loading state for each property
-	let homes = props.data.user.homes;
+	let homes = props.data.user ? props.data.user.homes : [];
 
 	let filteredProperties = $derived.by(() => {
 		const newProperties = properties.filter((item: any) => {
@@ -40,7 +40,8 @@
 				image: item.images[0]?.url || 'https://placehold.co/200x300',
 				energylabel: item.energylabel,
 				cost: item.cost,
-				isFavorite: props.data.user.homes.includes(item.id)
+				isFavorite: props.data.user ? props.data.user.homes.includes(item.id) : false,
+				isLoading: false // Added isLoading property directly to the property object
 			}));
 			properties = filteredData;
 		} catch (err: any) {
@@ -54,12 +55,9 @@
 	});
 
 	async function addFavorite(homeId: string) {
-		loadingState[homeId] = true;
-
-		if (homes.includes(homeId)) {
-			alert('This property is already in your favorites!');
-			return;
-		}
+		properties = properties.map((property) =>
+			property.id === homeId ? { ...property, isLoading: true } : property
+		);
 
 		const updatedHomes = [...homes, homeId];
 		try {
@@ -75,23 +73,23 @@
 			});
 			homes = updatedHomes;
 
-			console.log(homes);
 			properties = properties.map((property) =>
-				property.id === homeId ? { ...property, isFavorite: true } : property
+				property.id === homeId ? { ...property, isFavorite: true, isLoading: false } : property
 			);
 		} catch (err) {
 			console.error(err);
+			properties = properties.map((property) =>
+				property.id === homeId ? { ...property, isLoading: false } : property
+			);
 		} finally {
-			loadingState[homeId] = false;
+			await invalidateAll();
 		}
 	}
 
 	async function removeFavorite(homeId: string) {
-		loadingState[homeId] = true;
-		if (!homes.includes(homeId)) {
-			alert('This property is not in your favorites!');
-			return;
-		}
+		properties = properties.map((property) =>
+			property.id === homeId ? { ...property, isLoading: true } : property
+		);
 
 		const updatedHomes = homes.filter((id: string) => id !== homeId);
 		try {
@@ -106,13 +104,17 @@
 				})
 			});
 			homes = updatedHomes;
+
 			properties = properties.map((property) =>
-				property.id === homeId ? { ...property, isFavorite: false } : property
+				property.id === homeId ? { ...property, isFavorite: false, isLoading: false } : property
 			);
 		} catch (err) {
 			console.error(err);
+			properties = properties.map((property) =>
+				property.id === homeId ? { ...property, isLoading: false } : property
+			);
 		} finally {
-			loadingState[homeId] = false;
+			await invalidateAll();
 		}
 	}
 
@@ -123,15 +125,15 @@
 
 <section class="grid grid-cols-1 gap-6 md:grid-cols-2">
 	{#if filteredProperties.length === 0 && errorMessage === ''}
-		<div class="h-[25rem] w-[30rem] animate-pulse rounded bg-gray-300"></div>
-		<div class="h-[25rem] w-[30rem] animate-pulse rounded bg-gray-300"></div>
-		<div class="h-[25rem] w-[30rem] animate-pulse rounded bg-gray-300"></div>
+		<div class="bg-gray-300 rounded animate-pulse h-[25rem] w-[30rem]"></div>
+		<div class="bg-gray-300 rounded animate-pulse h-[25rem] w-[30rem]"></div>
+		<div class="bg-gray-300 rounded animate-pulse h-[25rem] w-[30rem]"></div>
 	{:else if errorMessage !== ''}
 		<p style="color: red">{errorMessage}</p>
 	{:else if filteredProperties.length > 0}
 		{#each filteredProperties as property (property.id)}
 			<article
-				class="relative overflow-hidden rounded-lg bg-white shadow-lg transition duration-[0.5] hover:scale-[1.01] hover:cursor-pointer"
+				class="overflow-hidden relative bg-white rounded-lg shadow-lg transition hover:cursor-pointer duration-[0.5] hover:scale-[1.01]"
 			>
 				<a href={`property/${property.id}`}>
 					<div>
@@ -139,23 +141,23 @@
 							<img
 								src={property.image}
 								alt={property.title}
-								class="aspect-[2/1] w-full object-cover"
+								class="object-cover w-full aspect-[2/1]"
 							/>
 						</div>
-						<div class="space-y-2 p-4">
+						<div class="p-4 space-y-2">
 							<h2 class="text-lg font-semibold">{property.title}</h2>
 							<p class="text-gray-600">{property.location}</p>
 
-							<div class="flex items-end gap-1">
+							<div class="flex gap-1 items-end">
 								<span class="text-base font-medium">{property.type} •</span>
 								<span class="text-sm">ejerudgift: {formatPrice(property.cost)} kr.</span>
 							</div>
-							<div class="h-[1px] w-full bg-gray-200"></div>
+							<div class="w-full bg-gray-200 h-[1px]"></div>
 
-							<div class="flex items-start justify-between text-sm text-gray-600">
-								<div class="flex items-center gap-3">
+							<div class="flex justify-between items-start text-sm text-gray-600">
+								<div class="flex gap-3 items-center">
 									<span
-										class="flex h-7 w-7 items-center justify-center rounded bg-[#10AC84] text-lg font-bold text-white"
+										class="flex justify-center items-center w-7 h-7 text-lg font-bold text-white rounded bg-[#10AC84]"
 										>{property.energylabel}</span
 									>
 									<div>
@@ -172,31 +174,47 @@
 					</div>
 				</a>
 
-				{#if loadingState[property.id]}
-					<button
-						class="absolute right-4 top-4 rounded-full bg-white p-2 shadow-sm hover:bg-gray-100"
-						disabled={true}
-					>
-						<img src={hearth} alt="like Button" />
-					</button>
-				{:else if !property.isFavorite}
-					<button
-						class="absolute right-4 top-4 rounded-full bg-white p-2 shadow-sm hover:bg-gray-100"
-						onclick={(e) => {
-							addFavorite(property.id);
-						}}
-					>
-						<img src={hearth} alt="like Button" />
-					</button>
-				{:else}
-					<button
-						class="absolute right-4 top-4 rounded-full bg-white p-2 shadow-sm hover:bg-gray-100"
-						onclick={(e) => {
-							removeFavorite(property.id);
-						}}
-					>
-						<img src={love} alt="like Button" />
-					</button>
+				{#if props.data.user}
+					{#if property.isLoading}
+						<button
+							class="absolute top-4 right-4 p-2 bg-white rounded-full shadow-sm hover:bg-gray-100"
+						>
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								width="18"
+								height="18"
+								fill="currentColor"
+								class="animate-spin bi bi-arrow-clockwise"
+								viewBox="0 0 16 16"
+							>
+								<path
+									fill-rule="evenodd"
+									d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z"
+								/>
+								<path
+									d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466"
+								/>
+							</svg>
+						</button>
+					{:else if !property.isFavorite}
+						<button
+							class="absolute top-4 right-4 p-2 bg-white rounded-full shadow-sm hover:bg-gray-100"
+							onclick={(e) => {
+								addFavorite(property.id);
+							}}
+						>
+							<img src={hearth} alt="like Button" />
+						</button>
+					{:else}
+						<button
+							class="absolute top-4 right-4 p-2 bg-white rounded-full shadow-sm hover:bg-gray-100"
+							onclick={(e) => {
+								removeFavorite(property.id);
+							}}
+						>
+							<img src={love} alt="like Button" />
+						</button>
+					{/if}
 				{/if}
 			</article>
 		{/each}

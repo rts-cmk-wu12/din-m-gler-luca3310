@@ -166,8 +166,7 @@
 			<div class="p-6 bg-gray-50 rounded-lg">
 				<h2 class="mb-4 text-lg font-semibold">Search Property</h2>
 				<div class="relative">
-					
-                    <SearchBar/>
+					<SearchBar button={false} text="søg" />
 				</div>
 			</div>
 
